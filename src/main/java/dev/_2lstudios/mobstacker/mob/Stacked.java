@@ -1,5 +1,6 @@
 package dev._2lstudios.mobstacker.mob;
 
+import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Creature;
 
 public class Stacked {
@@ -24,6 +25,16 @@ public class Stacked {
 
     public void set(int count) {
         this.count = count;
+    }
+
+    public int getAge() {
+        if (entity instanceof Ageable) {
+            int age = ((Ageable) entity).getAge();
+
+            return age < 0 ? -1 : 0;
+        }
+
+        return 0;
     }
 }
 

@@ -1,6 +1,22 @@
-messages:
-  from-command: "&eHello world from Command."
-  from-listener: "&aHello world from Listener."
-  from-task: "&dHello world from Task."
+# Try merging every X ticks
+stacker_tick_rate: 20
 
-task-repeat-every: 3
+# Start merging mobs after there are X of the same type
+stack_threshold: 3
+
+# Separate stacks by age
+separate_age: true
+
+blacklist:
+  - VILLAGER
+
+no_permission: "&cNo permission to use MobStacker!"
+reload: "&aMobStacker was reloaded!"
+argument_not_found: "&cArgument '%argument%' not found!"
+
+statistics: |-
+  &a&lMobStacker Information&7 (By LinsaFTW)
+  &7 ■ Total Mobs Spawned:&e %total_mobs%
+  &7 ■ Total Mobs Stacked:&b %total_stacked%
+  &7 
+  &7 ■ Stack Threshold:&d %stack_threshold%

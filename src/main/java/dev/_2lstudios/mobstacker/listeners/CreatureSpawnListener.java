@@ -9,23 +9,25 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
 public class CreatureSpawnListener
-implements Listener {
+        implements Listener {
     private StackedManager stackedManager;
 
     public CreatureSpawnListener(StackedManager stackedManager) {
         this.stackedManager = stackedManager;
     }
 
-    @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
-        if (this.stackedManager.isBlacklisted(event.getEntityType())) {
-            return;
+        if (!this.stackedManager.isBlacklisted(event.getEntityType())) {
+            LivingEntity entity = event.getEntity();
+
+            if (entity instanceof Creature) {
+                Creature creature = (Creature) entity;
+
+                this.stackedManager.getMob(creature);
+            }
         }
-        LivingEntity entity = event.getEntity();
-        if (entity instanceof Creature) {
-            Creature creature = (Creature)entity;
-            this.stackedManager.getMob(creature);
-        }
+
+        this.stackedManager.addTotalMobsSpawned();
     }
 }
-
