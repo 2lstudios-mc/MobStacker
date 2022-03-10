@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
 
     <name>MobStacker</name>
-    <description>Stack mobs for performance & stability</description>
+    <description>Stack mobs for performance and stability</description>
     <version>0.0.1</version>
     <url>https://github.com/2lstudios-mc/mobstacker</url>
 
