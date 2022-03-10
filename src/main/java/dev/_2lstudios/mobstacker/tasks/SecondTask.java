@@ -1,8 +1,10 @@
 package dev._2lstudios.mobstacker.tasks;
 
-import dev._2lstudios.mobstacker.mob.MobManager;
-import dev._2lstudios.mobstacker.mob.StackedMob;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -11,41 +13,58 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.plugin.Plugin;
 
+import dev._2lstudios.mobstacker.mob.StackedManager;
+import dev._2lstudios.mobstacker.mob.Stacked;
+
 public class SecondTask {
-    public SecondTask(Plugin plugin, MobManager mobManager) {
+    private void merge(Creature creature, Stacked stacked, Creature otherCreature, Stacked otherStackedMob) {
+        creature.remove();
+        otherStackedMob.add(stacked.getCount());
+        stacked.set(0);
+        otherCreature.setCustomName(
+                String.valueOf(ChatColor.YELLOW + "x" + otherStackedMob.getCount()));
+    }
+
+    public SecondTask(Plugin plugin, StackedManager stackedManager) {
         Server server = plugin.getServer();
+        Map<UUID, Stacked> toAdd = new ConcurrentHashMap<>();
+
         server.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            Iterator<StackedMob> iterator = mobManager.getMobs().iterator();
+            Map<UUID, Stacked> mobsMap = stackedManager.getMobsMap();
+            Iterator<Stacked> iterator = mobsMap.values().iterator();
+
             while (iterator.hasNext()) {
-                StackedMob mob = iterator.next();
-                Creature creature = mob.getEntity();
-                if (creature.isValid()) {
+                Stacked stacked = iterator.next();
+                Creature creature = stacked.getEntity();
+
+                if (creature.isValid() || stacked.getCount() > 0) {
                     EntityType entityType = creature.getType();
                     Location location = creature.getLocation();
                     double y = location.getY();
-                    for (Entity entity1 : location.getChunk().getEntities()) {
-                        if (entity1 == null || creature == entity1 || entityType != entity1.getType() || !(entity1 instanceof Creature) || !entity1.isValid() || !(Math.abs(y - entity1.getLocation().getY()) < 10.0)) continue;
-                        Creature creature1 = (Creature)entity1;
-                        StackedMob mob1 = mobManager.getMob(creature1);
-                        int mobCount = mob.getCount();
-                        int mob1Count = mob1.getCount();
-                        int mobCountPlus = mob.getCount() + mob1.getCount();
-                        if (mob1Count >= mobCount) {
-                            mob1.set(mobCountPlus);
-                            creature.remove();
-                            iterator.remove();
-                            entity1.setCustomName(String.valueOf((Object)ChatColor.YELLOW + "x" + mobCountPlus));
-                            continue;
+
+                    for (Entity otherEntity : location.getChunk().getEntities()) {
+                        if (creature != otherEntity && entityType == otherEntity.getType()
+                                && otherEntity.isValid()
+                                && Math.abs(y - otherEntity.getLocation().getY()) <= 10.0) {
+                            Creature otherCreature = (Creature) otherEntity;
+                            Stacked otherStackedMob = stackedManager.getMobOrNew(otherCreature);
+                            int mobCount = stacked.getCount();
+                            int otherMobCount = otherStackedMob.getCount();
+
+                            if (otherMobCount > mobCount) {
+                                merge(creature, stacked, otherCreature, otherStackedMob);
+                            } else {
+                                merge(otherCreature, otherStackedMob, creature, stacked);
+                            }
                         }
-                        mob.set(mobCountPlus);
-                        creature1.remove();
-                        creature.setCustomName(String.valueOf((Object)ChatColor.YELLOW + "x" + mobCountPlus));
                     }
-                    continue;
+                } else {
+                    iterator.remove();
                 }
-                iterator.remove();
             }
+
+            mobsMap.putAll(toAdd);
+            toAdd.clear();
         }, 20L, 20L);
     }
 }
-

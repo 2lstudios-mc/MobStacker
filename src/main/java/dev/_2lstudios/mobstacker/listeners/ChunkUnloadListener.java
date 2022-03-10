@@ -1,6 +1,6 @@
 package dev._2lstudios.mobstacker.listeners;
 
-import dev._2lstudios.mobstacker.mob.MobManager;
+import dev._2lstudios.mobstacker.mob.StackedManager;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
@@ -11,10 +11,10 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ChunkUnloadListener
 implements Listener {
-    private MobManager mobManager;
+    private StackedManager stackedManager;
 
-    public ChunkUnloadListener(MobManager mobManager) {
-        this.mobManager = mobManager;
+    public ChunkUnloadListener(StackedManager stackedManager) {
+        this.stackedManager = stackedManager;
     }
 
     @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGH)
@@ -22,7 +22,7 @@ implements Listener {
         Chunk chunk = event.getChunk();
         for (Entity entity : chunk.getEntities()) {
             if (!(entity instanceof Creature) || !entity.isValid()) continue;
-            this.mobManager.removeEntity((Creature)entity);
+            this.stackedManager.removeEntity((Creature)entity);
         }
     }
 }

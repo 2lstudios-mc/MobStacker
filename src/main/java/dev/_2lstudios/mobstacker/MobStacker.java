@@ -2,7 +2,7 @@ package dev._2lstudios.mobstacker;
 
 import dev._2lstudios.mobstacker.listeners.CreatureSpawnListener;
 import dev._2lstudios.mobstacker.listeners.EntityDeathListener;
-import dev._2lstudios.mobstacker.mob.MobManager;
+import dev._2lstudios.mobstacker.mob.StackedManager;
 import dev._2lstudios.mobstacker.tasks.SecondTask;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,11 +27,11 @@ extends JavaPlugin {
 
     public void onEnable() {
         Collection<EntityType> blacklist = this.toEntityTypes(this.getConfig().getStringList("blacklist"));
-        MobManager mobManager = new MobManager(blacklist);
+        StackedManager stackedManager = new StackedManager(blacklist);
         PluginManager pluginManager = this.getServer().getPluginManager();
-        new SecondTask((Plugin)this, mobManager);
-        pluginManager.registerEvents((Listener)new EntityDeathListener(mobManager), (Plugin)this);
-        pluginManager.registerEvents((Listener)new CreatureSpawnListener(mobManager), (Plugin)this);
+        new SecondTask((Plugin)this, stackedManager);
+        pluginManager.registerEvents((Listener)new EntityDeathListener(stackedManager), (Plugin)this);
+        pluginManager.registerEvents((Listener)new CreatureSpawnListener(stackedManager), (Plugin)this);
     }
 }
 

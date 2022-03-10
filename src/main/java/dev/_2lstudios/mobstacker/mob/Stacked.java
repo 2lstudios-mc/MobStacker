@@ -2,11 +2,11 @@ package dev._2lstudios.mobstacker.mob;
 
 import org.bukkit.entity.Creature;
 
-public class StackedMob {
+public class Stacked {
     private final Creature entity;
     private int count = 1;
 
-    public StackedMob(Creature entity) {
+    public Stacked(Creature entity) {
         this.entity = entity;
     }
 
