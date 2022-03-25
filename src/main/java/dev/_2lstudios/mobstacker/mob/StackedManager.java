@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 
 public class StackedManager {
     private Map<UUID, Stacked> mobsMap = new HashMap<UUID, Stacked>();
+    private Collection<Stacked> newMobsMap = ConcurrentHashMap.newKeySet();
     private Collection<EntityType> blacklist;
     private int totalMobsSpawned = 0;
     private int totalMobsStacked = 0;
@@ -26,17 +28,19 @@ public class StackedManager {
         return this.mobsMap.getOrDefault(entity.getUniqueId(), null);
     }
 
-    public Stacked getMobOrNew(Creature entity) {
-        return this.mobsMap.getOrDefault(entity.getUniqueId(), new Stacked(entity));
-    }
-
     public Stacked getMob(Creature entity) {
-        Stacked mob = getMobOrNew(entity);
         UUID uniqueId = entity.getUniqueId();
 
-        mobsMap.put(uniqueId, mob);
+        if (!mobsMap.containsKey(uniqueId)) {
+            Stacked mob = new Stacked(entity);
 
-        return mob;
+            mobsMap.put(uniqueId, mob);
+            newMobsMap.add(mob);
+
+            return mob;
+        } else {
+            return mobsMap.get(uniqueId);
+        }
     }
 
     public Collection<Stacked> getMobs() {
@@ -57,7 +61,7 @@ public class StackedManager {
     public Map<UUID, Stacked> getMobsMap() {
         return mobsMap;
     }
-    
+
     public int getTotalMobsSpawned() {
         return totalMobsSpawned;
     }
@@ -76,5 +80,9 @@ public class StackedManager {
 
     public void setBlacklist(Collection<EntityType> blacklist) {
         this.blacklist = blacklist;
+    }
+
+    public Collection<Stacked> getUpdatedMobs() {
+        return newMobsMap;
     }
 }

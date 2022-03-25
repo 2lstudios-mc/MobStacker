@@ -18,16 +18,16 @@ public class CreatureSpawnListener
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
-        if (!this.stackedManager.isBlacklisted(event.getEntityType())) {
+        if (!stackedManager.isBlacklisted(event.getEntityType())) {
             LivingEntity entity = event.getEntity();
 
             if (entity instanceof Creature) {
                 Creature creature = (Creature) entity;
 
-                this.stackedManager.getMob(creature);
+                stackedManager.getMob(creature);
             }
         }
 
-        this.stackedManager.addTotalMobsSpawned();
+        stackedManager.addTotalMobsSpawned();
     }
 }

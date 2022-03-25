@@ -10,20 +10,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ChunkUnloadListener
-implements Listener {
+        implements Listener {
     private StackedManager stackedManager;
 
     public ChunkUnloadListener(StackedManager stackedManager) {
         this.stackedManager = stackedManager;
     }
 
-    @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onChunkUnload(ChunkUnloadEvent event) {
         Chunk chunk = event.getChunk();
+        
         for (Entity entity : chunk.getEntities()) {
-            if (!(entity instanceof Creature) || !entity.isValid()) continue;
-            this.stackedManager.removeEntity((Creature)entity);
+            if (!(entity instanceof Creature)) {
+                continue;
+            }
+
+            stackedManager.removeEntity((Creature) entity);
         }
     }
 }
-

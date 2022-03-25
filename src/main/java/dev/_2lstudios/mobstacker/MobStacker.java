@@ -10,8 +10,10 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import dev._2lstudios.mobstacker.commands.MobStackerCommand;
+import dev._2lstudios.mobstacker.listeners.ChunkUnloadListener;
 import dev._2lstudios.mobstacker.listeners.CreatureSpawnListener;
 import dev._2lstudios.mobstacker.listeners.EntityDeathListener;
+import dev._2lstudios.mobstacker.listeners.EntityTargetListener;
 import dev._2lstudios.mobstacker.mob.StackedManager;
 import dev._2lstudios.mobstacker.tasks.StackerTask;
 
@@ -47,8 +49,11 @@ public class MobStacker extends JavaPlugin {
                 stackerTickRate,
                 stackerTickRate);
 
+        pluginManager.registerEvents(new ChunkUnloadListener(stackedManager), this);
         pluginManager.registerEvents(new EntityDeathListener(stackedManager), this);
         pluginManager.registerEvents(new CreatureSpawnListener(stackedManager), this);
+        pluginManager.registerEvents(new EntityDeathListener(stackedManager), this);
+        pluginManager.registerEvents(new EntityTargetListener(stackedManager), this);
 
         getCommand("mobstacker").setExecutor(new MobStackerCommand(this, stackedManager));
     }

@@ -1,9 +1,9 @@
 package dev._2lstudios.mobstacker.tasks;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,16 +17,18 @@ import dev._2lstudios.mobstacker.mob.Stacked;
 import dev._2lstudios.mobstacker.mob.StackedManager;
 
 public class StackerTask implements Runnable {
+    private static int MERGE_DISTANCE = 10;
+
     private MobStacker mobStacker;
     private StackedManager stackedManager;
     private Map<UUID, Stacked> mobsMap;
-    private Map<UUID, Stacked> toAdd;
+    private Collection<Stacked> updatedMobs;
 
     public StackerTask(MobStacker mobStacker, StackedManager stackedManager) {
         this.mobStacker = mobStacker;
         this.stackedManager = stackedManager;
         this.mobsMap = stackedManager.getMobsMap();
-        this.toAdd = new ConcurrentHashMap<>();
+        this.updatedMobs = stackedManager.getUpdatedMobs();
     }
 
     private void merge(Creature creature, Stacked stacked, Creature otherCreature, Stacked otherStackedMob) {
@@ -44,7 +46,7 @@ public class StackerTask implements Runnable {
     }
 
     public void run() {
-        Iterator<Stacked> iterator = mobsMap.values().iterator();
+        Iterator<Stacked> iterator = updatedMobs.iterator();
         Configuration config = mobStacker.getConfig();
         int stackThreshold = config.getInt("stack_threshold");
         boolean separateAge = config.getBoolean("separate_age");
@@ -53,38 +55,40 @@ public class StackerTask implements Runnable {
             Stacked stacked = iterator.next();
             Creature creature = stacked.getEntity();
 
-            if (creature.isValid() || stacked.getCount() > 0) {
-                EntityType entityType = creature.getType();
+            iterator.remove();
+
+            if (creature.isValid() && stacked.getCount() > 0) {
                 Location location = creature.getLocation();
-                double y = location.getY();
+                Entity[] entities = location.getChunk().getEntities();
+                EntityType entityType = creature.getType();
                 int age = stacked.getAge();
                 int sameTypeCount = 0;
 
-                for (Entity otherEntity : location.getChunk().getEntities()) {
+                for (Entity otherEntity : entities) {
                     if (creature != otherEntity && otherEntity.isValid() && entityType == otherEntity.getType()
-                            && Math.abs(y - otherEntity.getLocation().getY()) <= 10.0) {
+                            && location.distance(otherEntity.getLocation()) <= MERGE_DISTANCE) {
                         Creature otherCreature = (Creature) otherEntity;
-                        Stacked otherStackedMob = stackedManager.getMobOrNew(otherCreature);
-                        int otherAge = otherStackedMob.getAge();
+                        Stacked otherStacked = stackedManager.getMob(otherCreature);
+                        int otherAge = otherStacked.getAge();
 
                         if ((!separateAge || (age == otherAge)) && ++sameTypeCount >= stackThreshold) {
                             int mobCount = stacked.getCount();
-                            int otherMobCount = otherStackedMob.getCount();
+                            int otherMobCount = otherStacked.getCount();
 
                             if (otherMobCount > mobCount) {
-                                merge(creature, stacked, otherCreature, otherStackedMob);
+                                merge(creature, stacked, otherCreature, otherStacked);
+                                mobsMap.remove(creature.getUniqueId());
+                                mobsMap.put(otherCreature.getUniqueId(), otherStacked);
+                                break;
                             } else {
-                                merge(otherCreature, otherStackedMob, creature, stacked);
+                                merge(otherCreature, otherStacked, creature, stacked);
                             }
                         }
                     }
                 }
             } else {
-                iterator.remove();
+                mobsMap.remove(creature.getUniqueId());
             }
         }
-
-        mobsMap.putAll(toAdd);
-        toAdd.clear();
     }
 }
